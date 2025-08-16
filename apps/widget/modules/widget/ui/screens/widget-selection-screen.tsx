@@ -7,32 +7,55 @@ import {
   MessageSquareIcon,
   MessageSquareTextIcon,
 } from "lucide-react";
-import { contactSessionIdAtomFamily, errorMessageAtom, organizationIdAtom, screenAtom } from "@/modules/widget/atoms/widget-atoms";
+import {
+  contactSessionIdAtomFamily,
+  conversationIdAtom,
+  errorMessageAtom,
+  organizationIdAtom,
+  screenAtom,
+} from "@/modules/widget/atoms/widget-atoms";
 import { WidgetHeader } from "../components/widget-header";
 import { Button } from "@workspace/ui/components/button";
 import { useMutation } from "convex/react";
 import { api } from "@workspace/backend/_generated/api";
+import { useState } from "react";
 
 export const WidgetSelectionScreen = () => {
+  const setScreen = useSetAtom(screenAtom);
+  const setErrorMessage = useSetAtom(errorMessageAtom);
+  const setConversationId = useSetAtom(conversationIdAtom)
+  const organizationId = useAtomValue(organizationIdAtom);
+  const contactSessionId = useAtomValue(
+    contactSessionIdAtomFamily(organizationId || "")
+  );
+  const createConversation = useMutation(api.public.conversations.create);
+  const [isPending, setIsPending] = useState(false);
 
-    const setScreen = useSetAtom(screenAtom)
-    const setErrorMessage = useSetAtom(errorMessageAtom)
-    const organizationId = useAtomValue(organizationIdAtom)
-    const contactSessionId = useAtomValue(
-        contactSessionIdAtomFamily(organizationId || "")
-    )
-    const createConversation = useMutation(api.public.conversations.create)
-
-    const handleNewCoversation = async () => {
-        if(!contactSessionId) {
-            setScreen("auth")
-            return
-        }
-        if(!organizationId) {
-            setScreen("error")
-            setErrorMessage("Missing Organization ID")
-        }
+  const handleNewCoversation = async () => {
+    if (!organizationId) {
+      setScreen("error");
+      setErrorMessage("Missing Organization ID");
+      return;
     }
+
+    if (!contactSessionId) {
+      setScreen("auth");
+      return;
+    }
+    setIsPending(true);
+    try {
+      const conversationId = await createConversation({
+        contactSessionId,
+        organizationId,
+      });
+      setConversationId(conversationId)
+      setScreen("chat");
+    } catch {
+      setScreen("auth");
+    } finally {
+      setIsPending(false)
+    }
+  };
 
   return (
     <>
@@ -46,7 +69,8 @@ export const WidgetSelectionScreen = () => {
         <Button
           className="h-16 w-full justify-between"
           variant="outline"
-          onClick={() => {}}
+          onClick={handleNewCoversation}
+          disabled={isPending}
         >
           <div className="flex items-center gap-x-2">
             <MessageSquareTextIcon className="size-4" />
