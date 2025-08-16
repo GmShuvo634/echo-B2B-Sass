@@ -1,6 +1,6 @@
 "use client";
 
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import {
   AlertTriangleIcon,
   ArrowLeftCircleIcon,
@@ -12,6 +12,7 @@ import {
   conversationIdAtom,
   errorMessageAtom,
   organizationIdAtom,
+  screenAtom,
 } from "@/modules/widget/atoms/widget-atoms";
 import { WidgetHeader } from "../components/widget-header";
 import { Button } from "@workspace/ui/components/button";
@@ -19,6 +20,8 @@ import { useQuery } from "convex/react";
 import { api } from "@workspace/backend/_generated/api";
 
 export const WidgetChatScreen = () => {
+  const setScreen = useSetAtom(screenAtom)
+  const setConversationId = useSetAtom(conversationIdAtom)
   const conversationId = useAtomValue(conversationIdAtom);
   const organizationId = useAtomValue(organizationIdAtom);
   const contactSessionId = useAtomValue(
@@ -35,11 +38,16 @@ export const WidgetChatScreen = () => {
       : "skip"
   );
 
+  const onBack = () => {
+    setConversationId(null)
+    setScreen("selection")
+  }
+
   return (
     <>
       <WidgetHeader className="flex items-center justify-between">
         <div className="flex items-center gap-x-2">
-          <Button size="icon" variant="transparent">
+          <Button size="icon" variant="transparent" onClick={onBack}>
             <ArrowLeftIcon />
           </Button>
           <p>Chat</p>
