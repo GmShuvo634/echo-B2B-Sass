@@ -26,6 +26,8 @@ import { usePathname } from "next/navigation";
 import { ConversationStatusIcon } from "@workspace/ui/components/conversation-status-icon";
 import { useAtomValue, useSetAtom } from "jotai/react";
 import { statusFilterAtom } from "../../atoms";
+import { useInfiniteScroll } from "@workspace/ui/hooks/use-infinite-scroll";
+import { InfiniteScrollTrigger } from "@workspace/ui/components/infinite-scroll-trigger";
 
 export const ConversationsPanel = () => {
   const pathname = usePathname();
@@ -41,6 +43,18 @@ export const ConversationsPanel = () => {
       initialNumItems: 10,
     }
   );
+
+  const {
+    topElementRef,
+    handleLoadMore,
+    canLoadMore,
+    isLoadingMore,
+    isLoadingFirstPage,
+  } = useInfiniteScroll({
+    status: conversations.status,
+    loadMore: conversations.loadMore,
+    loadSize: 10,
+  });
 
   return (
     <div className="flex h-full w-full flex-col bg-background text-sidebar-foreground">
@@ -153,6 +167,12 @@ export const ConversationsPanel = () => {
               </Link>
             );
           })}
+          <InfiniteScrollTrigger
+            canLoadMore={canLoadMore}
+            isLoadingMore={isLoadingMore}
+            onLoadMore={handleLoadMore}
+            ref={topElementRef}
+          />
         </div>
       </ScrollArea>
     </div>
