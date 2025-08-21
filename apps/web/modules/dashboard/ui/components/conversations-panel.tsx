@@ -1,7 +1,7 @@
 "use client";
 
 import { formatDistanceToNow } from "date-fns";
-import { getCountryFromTimezone } from "@/lib/country-utils";
+import { getCountryFlagUrl, getCountryFromTimezone } from "@/lib/country-utils";
 import { api } from "@workspace/backend/_generated/api";
 import { DicebearAvatar } from "@workspace/ui/components/dicebear-avatar";
 import { ScrollArea } from "@workspace/ui/components/scroll-area";
@@ -83,7 +83,10 @@ export const ConversationsPanel = () => {
               conversation.contactSession.metadata?.timezone
             );
 
-            const countryFlageUrl = "/logo.svg";
+            const countryFlageUrl = country?.code
+              ? getCountryFlagUrl(country.code)
+              : undefined
+            ;
 
             return (
               <Link
@@ -98,7 +101,7 @@ export const ConversationsPanel = () => {
                   pathname === `/conversations/${conversation._id}` && "opacity-100"
                 )} />
 
-                <DicebearAvatar seed={conversation.contactSession._id} size={40} className="shrink-0" />
+                <DicebearAvatar seed={conversation.contactSession._id} size={40} className="shrink-0" badgeImageUrl={countryFlageUrl} />
 
                 <div className="flex-1">
                   <div className="flex w-full items-center gap-2">
